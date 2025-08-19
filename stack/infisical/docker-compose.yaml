@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   postgres:
     image: postgres:15
@@ -8,15 +10,45 @@ services:
       POSTGRES_PASSWORD: supersecret
     volumes:
       - /mnt/data/docker/infisical/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U infisical -d infisical"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - /mnt/data/docker/infisical/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   infisical:
     image: infisical/infisical:latest
     restart: unless-stopped
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
+      # обов'язкове
       DATABASE_URL: postgres://infisical:supersecret@postgres:5432/infisical
+      REDIS_URL: redis://redis:6379
+
+      # безпека/шифрування
       AUTH_SECRET: ab963d9514c9ab9dfb7342cbce8041577020e808490f4d17baa3c10c86411fa40c32747e5539e3ae8d6159ea8c1f2a695ad33376acf0a7fa0ebcef0250782cb3
-      ENCRYPTION_KEY: ckD/1J9suZFNtgaiAXT7T9xUBraXcPexfutcfeqNRCw=
+      ENCRYPTION_KEY: ckD/1J9suZFNtgaiAXT7T9xUBraXcPexfutcfeqNRCw=  # 32 байти base64
+
+      # інше (не обов'язково, але бажано)
+      NODE_ENV: production
+      PORT: 8080
+      SITE_URL: http://localhost:8080        # заміни на свій домен/URL якщо йдеш через проксі
+      TELEMETRY_ENABLED: "false"
     ports:
       - "8080:8080"
