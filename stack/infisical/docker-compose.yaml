@@ -16,5 +16,7 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgres://infisical:supersecret@postgres:5432/infisical
+      AUTH_SECRET: ab963d9514c9ab9dfb7342cbce8041577020e808490f4d17baa3c10c86411fa40c32747e5539e3ae8d6159ea8c1f2a695ad33376acf0a7fa0ebcef0250782cb3
+      ENCRYPTION_KEY: ckD/1J9suZFNtgaiAXT7T9xUBraXcPexfutcfeqNRCw=
     ports:
       - "8080:8080"
