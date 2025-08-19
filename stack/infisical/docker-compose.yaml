@@ -7,14 +7,15 @@ services:
     environment:
       POSTGRES_DB: infisical
       POSTGRES_USER: infisical
-      POSTGRES_PASSWORD: supersecret
+      POSTGRES_PASSWORD_FILE: /run/infisical-secrets/POSTGRES_PASSWORD
     volumes:
       - /mnt/data/docker/infisical/postgres:/var/lib/postgresql/data
+      - /mnt/data/docker/infisical/env:/run/infisical-secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U infisical -d infisical"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -26,7 +27,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   infisical:
     image: infisical/infisical:latest
@@ -36,18 +37,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      # обов'язкові змінні для self-hosted
-      DB_CONNECTION_URI: postgres://infisical:supersecret@postgres:5432/infisical
-      REDIS_URL: redis://redis:6379
-      SITE_URL: http://localhost:8080
-
-      # ключі (див. формати нижче)
-      ENCRYPTION_KEY: 6c1fe4e407b8911c104518103505b218
-      AUTH_SECRET: 5lrMXKKWCVocS/uerPsl7V+TX/aaUaI7iDkgl3tSmLE=
-
-      NODE_ENV: production
-      PORT: 8080
-      TELEMETRY_ENABLED: "false"
+    env_file:
+      - /mnt/data/docker/infisical/env/infisical.env
     ports:
       - "8080:8080"
