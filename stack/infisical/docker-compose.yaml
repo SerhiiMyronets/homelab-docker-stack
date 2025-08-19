@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: infisical
+      POSTGRES_USER: infisical
+      POSTGRES_PASSWORD: supersecret
+    volumes:
+      - /mnt/data/docker/infisical/postgres:/var/lib/postgresql/data
+
+  infisical:
+    image: infisical/infisical:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://infisical:supersecret@postgres:5432/infisical
+    ports:
+      - "8080:8080"
