@@ -2,10 +2,8 @@ services:
   postgres:
     image: postgres:15
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: infisical
-      POSTGRES_USER: infisical
-      POSTGRES_PASSWORD_FILE: /run/infisical-secrets/POSTGRES_PASSWORD
+    env_file:
+      - /mnt/data/docker/infisical/env/infisical.env
     volumes:
       - /mnt/data/docker/infisical/postgres:/var/lib/postgresql/data
       - /mnt/data/docker/infisical/env:/run/infisical-secrets:ro
